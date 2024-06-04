@@ -1,6 +1,7 @@
 package com.mawen.think.in.framework.step5.framework;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +34,7 @@ public class ApplicationContext {
 		}
 
 		Class<T> implementation = findImplementationByInterface(clazz);
-		return createBean(implementation);
+		return createBean(clazz, implementation);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -51,12 +52,16 @@ public class ApplicationContext {
 				.orElseThrow(() -> new FrameworkException("This is no class with interface: " + interfaceItem.getName()));
 	}
 
-	private <T> T createBean(Class<T> implementation) {
-		final Constructor<T> constructor = findConstructor(implementation);
-		final Object[] parameters = findConstructorParameters(constructor);
-
+	private <T> T createBean(Class<T> clazz, Class<T> implementation) {
 		try {
-			return constructor.newInstance(parameters);
+			final Constructor<T> constructor = findConstructor(implementation);
+			final Object[] parameters = findConstructorParameters(constructor);
+			final T bean = constructor.newInstance(parameters);
+
+			final Object proxy = Proxy.newProxyInstance(ApplicationContext.class.getClassLoader(),
+					new Class[] {clazz},
+					new ProxyHandler(bean));
+			return clazz.cast(proxy);
 		}
 		catch (FrameworkException e) {
 			throw e;
