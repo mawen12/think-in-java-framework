@@ -1,4 +1,4 @@
 /**
- * Implement Bean Factory and AOP
+ * Create proxy in ApplicationContext
  */
 package com.mawen.think.in.framework.step5;
